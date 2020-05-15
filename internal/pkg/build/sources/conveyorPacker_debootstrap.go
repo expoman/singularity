@@ -59,10 +59,15 @@ func (cp *DebootstrapConveyorPacker) Get(ctx context.Context, b *types.Bundle) (
 		}
 	}
 
+	linuxArch, err := exec.Command("/usr/bin/dpkg-architecture", "-qDEB_BUILD_ARCH").Output()
+	if err != nil {
+		return fmt.Errorf("Error getting arch of system: %s", err)
+	}
+	buildArch := `--arch=`+string(linuxArch[:len(linuxArch)-1])
 	// run debootstrap command
-	cmd := exec.Command(debootstrapPath, `--variant=minbase`, `--exclude=openssl,udev,debconf-i18n,e2fsprogs`, `--include=apt,`+cp.include, `--arch=`+runtime.GOARCH, cp.osversion, cp.b.RootfsPath, cp.mirrorurl)
+	cmd := exec.Command(debootstrapPath, `--variant=minbase`, `--exclude=openssl,udev,debconf-i18n,e2fsprogs`, `--include=apt,`+cp.include, `--arch=`+buildArch, cp.osversion, cp.b.RootfsPath, cp.mirrorurl)
 
-	sylog.Debugf("\n\tDebootstrap Path: %s\n\tIncludes: apt(default),%s\n\tDetected Arch: %s\n\tOSVersion: %s\n\tMirrorURL: %s\n", debootstrapPath, cp.include, runtime.GOARCH, cp.osversion, cp.mirrorurl)
+	sylog.Debugf("\n\tDebootstrap Path: %s\n\tIncludes: apt(default),%s\n\tDetected Arch: %s\n\tOSVersion: %s\n\tMirrorURL: %s\n", debootstrapPath, cp.include, buildArch, cp.osversion, cp.mirrorurl)
 
 	// run debootstrap
 	out, err := cmd.CombinedOutput()
