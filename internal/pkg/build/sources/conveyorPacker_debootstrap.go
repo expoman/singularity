@@ -59,7 +59,7 @@ func (cp *DebootstrapConveyorPacker) Get(ctx context.Context, b *types.Bundle) (
 		}
 	}
 
-	linuxArch, err := exec.Command("/usr/bin/dpkg-architecture", "-qDEB_BUILD_ARCH").Output()
+	linuxArch, err := exec.Command("/usr/bin/dpkg", "--print-architecture").Output()
 	if err != nil {
 		return fmt.Errorf("Error getting arch of system: %s", err)
 	}
